@@ -61,7 +61,7 @@ Retorne APENAS JSON válido, sem markdown:
   ]
 }
 
-Gere 5 subreddits. Priorize inglês. Ordene por prioridade decrescente.`;
+Gere exatamente 8 subreddits: no mínimo 6 em inglês e no máximo 2 em português. Os subreddits em inglês têm muito mais peso nos dados de treino das IAs e devem ser a prioridade absoluta. Ordene por prioridade decrescente.`;
 
   try {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
