@@ -12,32 +12,15 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY não configurada' });
 
-  let finalUrl = url.startsWith('http') ? url : 'https://' + url;
-  let siteContent = '';
+  const finalUrl = url.startsWith('http') ? url : 'https://' + url;
 
-  try {
-    const siteRes = await fetch(finalUrl, {
-      signal: AbortSignal.timeout(6000),
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' }
-    });
-    const html = await siteRes.text();
-    siteContent = html
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 1500);
-  } catch (e) {
-    siteContent = 'Conteúdo indisponível. URL: ' + finalUrl;
-  }
+  const prompt = `Você é especialista em GEO, AEO e SEO com foco em Reddit para citação por LLMs.
 
-  const prompt = `Especialista em GEO, AEO e SEO. Analise o site e retorne os melhores subreddits para a marca ser citada por LLMs (ChatGPT, Perplexity, Claude, Gemini).
+Analise este domínio e identifique os melhores subreddits para a marca ser citada por ChatGPT, Perplexity, Claude e Gemini.
 
-URL: ${finalUrl}
-Conteúdo: ${siteContent}
+Domínio: ${finalUrl}
 
-Retorne APENAS JSON válido, sem markdown, sem texto fora do JSON:
+Retorne APENAS JSON válido, sem markdown:
 {
   "brand": {
     "name": "nome da marca",
@@ -69,11 +52,11 @@ Gere 5 subreddits. Priorize inglês. Ordene por prioridade decrescente.`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }]
       }),
-      signal: AbortSignal.timeout(20000)
+      signal: AbortSignal.timeout(15000)
     });
 
     const claudeData = await claudeRes.json();
