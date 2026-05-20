@@ -49,7 +49,7 @@ Retorne APENAS JSON válido, sem markdown:
     }
   ]
 }
-Gere 5 subreddits: 4 em inglês e 1 em português. Ordene por prioridade decrescente.`;
+Gere 5 subreddits: 4 em inglês e 1 em português. Ordene por prioridade decrescente. IMPORTANTE: o JSON deve estar completo e fechado, com todas as chaves e colchetes fechados.`;
   try {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
