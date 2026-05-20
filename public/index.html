@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reddit GEO Radar — Criamente</title>
+<title>Reddit Explorer — Criamente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -22,16 +22,11 @@
   --text3: #555;
   --blue: #125AF5;
   --blue-dim: rgba(18,90,245,0.12);
-  --blue-glow: rgba(18,90,245,0.25);
   --geo: #125AF5;
-  --geo-bg: rgba(18,90,245,0.1);
   --aeo: #E8920A;
-  --aeo-bg: rgba(232,146,10,0.1);
   --seo: #1AA860;
-  --seo-bg: rgba(26,168,96,0.1);
   --high: #EF4444;
   --med: #E8920A;
-  --low: #555;
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'IBM Plex Sans', sans-serif;
   --radius: 8px;
@@ -47,7 +42,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---- HEADER ---- */
 header {
   border-bottom: 1px solid var(--border);
   padding: 18px 32px;
@@ -71,10 +65,8 @@ header {
   letter-spacing: 0.06em;
 }
 
-/* ---- MAIN ---- */
 main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
 
-/* ---- HERO ---- */
 .hero { margin-bottom: 40px; }
 .hero-eyebrow {
   font-family: var(--mono);
@@ -98,7 +90,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   max-width: 540px;
 }
 
-/* ---- INPUT SECTION ---- */
 .input-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -145,7 +136,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
 .btn-analyze:hover { opacity: 0.85; }
 .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ---- LOADING ---- */
 #loading { display: none; margin-bottom: 32px; }
 .loading-card {
   background: var(--surface);
@@ -178,7 +168,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   50% { opacity: 0.3; }
 }
 
-/* ---- ERROR ---- */
 #error-box {
   display: none;
   background: rgba(239,68,68,0.08);
@@ -191,7 +180,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   font-family: var(--mono);
 }
 
-/* ---- RESULTS ---- */
 #results { display: none; }
 
 .brand-card {
@@ -238,7 +226,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
 
-/* ---- SUBREDDIT CARD ---- */
 .sub-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -251,12 +238,7 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
 .sub-header {
   padding: 16px 18px 14px;
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
 }
-.sub-name-block { flex: 1; min-width: 0; }
 .sub-name {
   font-size: 15px;
   font-weight: 600;
@@ -281,19 +263,10 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   border-radius: 20px;
   letter-spacing: 0.04em;
 }
-.badge-lang {
-  color: var(--text2);
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-}
+.badge-lang { color: var(--text2); background: var(--surface2); border: 1px solid var(--border2); }
 .badge-priority-alta { color: var(--high); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
 .badge-priority-media { color: var(--med); background: rgba(232,146,10,0.1); border: 1px solid rgba(232,146,10,0.2); }
 .badge-priority-baixa { color: var(--text3); background: var(--surface2); border: 1px solid var(--border2); }
-.sub-members {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text3);
-}
 
 .sub-rationale {
   padding: 12px 18px;
@@ -303,52 +276,32 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   border-bottom: 1px solid var(--border);
 }
 
-/* STRATEGY TABS */
-.strategy-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-}
-.stab {
-  flex: 1;
-  padding: 9px 0;
-  text-align: center;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  color: var(--text3);
-  transition: all 0.15s;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-}
-.stab:hover { color: var(--text2); }
-.stab.active-geo { color: var(--geo); border-bottom-color: var(--geo); }
-.stab.active-aeo { color: var(--aeo); border-bottom-color: var(--aeo); }
-.stab.active-seo { color: var(--seo); border-bottom-color: var(--seo); }
-
-.strategy-content { padding: 14px 18px 16px; }
-.strategy-panel { display: none; }
-.strategy-panel.active { display: block; }
-
-.strategy-label {
+/* CONSOLIDATED STRATEGY */
+.strategy-block { padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+.strategy-item { display: flex; flex-direction: column; gap: 5px; }
+.strategy-tag {
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 8px;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  width: fit-content;
 }
-.label-geo { color: var(--geo); }
-.label-aeo { color: var(--aeo); }
-.label-seo { color: var(--seo); }
-
+.tag-geo { color: var(--geo); background: rgba(18,90,245,0.1); border: 1px solid rgba(18,90,245,0.2); }
+.tag-aeo { color: var(--aeo); background: rgba(232,146,10,0.1); border: 1px solid rgba(232,146,10,0.2); }
+.tag-seo { color: var(--seo); background: rgba(26,168,96,0.1); border: 1px solid rgba(26,168,96,0.2); }
 .strategy-text {
   font-size: 12.5px;
   color: var(--text2);
   line-height: 1.65;
+}
+.strategy-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
 }
 
 .sub-footer {
@@ -366,7 +319,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
 }
 .sub-link:hover { color: var(--blue); }
 
-/* ---- CTA FOOTER ---- */
 .result-footer {
   margin-top: 36px;
   padding: 20px 24px;
@@ -379,11 +331,7 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   gap: 16px;
   flex-wrap: wrap;
 }
-.result-footer p {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.5;
-}
+.result-footer p { font-size: 13px; color: var(--text2); line-height: 1.5; }
 .result-footer strong { color: var(--text); }
 .btn-new {
   background: transparent;
@@ -408,7 +356,7 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
     <div class="logo-sep"></div>
     <span class="logo-label">GEO Tools</span>
   </a>
-  <span class="header-badge">REDDIT GEO RADAR</span>
+  <span class="header-badge">Reddit Explorer</span>
 </header>
 
 <main>
@@ -425,7 +373,7 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
         type="text"
         class="url-input"
         id="urlInput"
-        placeholder="ex: dommus.com.br"
+        placeholder="seudominio.com"
         autocomplete="off"
         spellcheck="false"
       >
@@ -441,8 +389,7 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
         <div class="step" id="step1"><div class="step-dot"></div> Lendo o site do cliente</div>
         <div class="step" id="step2"><div class="step-dot"></div> Identificando nicho, público e temas-chave</div>
         <div class="step" id="step3"><div class="step-dot"></div> Mapeando subreddits com potencial GEO/AEO/SEO</div>
-        <div class="step" id="step4"><div class="step-dot"></div> Validando atividade e membros no Reddit</div>
-        <div class="step" id="step5"><div class="step-dot"></div> Gerando estratégias por canal</div>
+        <div class="step" id="step4"><div class="step-dot"></div> Gerando estratégias consolidadas por canal</div>
       </div>
     </div>
   </div>
@@ -455,7 +402,7 @@ let stepIndex = 0;
 let stepTimer = null;
 
 function setStepActive(i) {
-  for (let n = 1; n <= 5; n++) {
+  for (let n = 1; n <= 4; n++) {
     const el = document.getElementById('step' + n);
     el.classList.remove('active', 'done');
     if (n < i) el.classList.add('done');
@@ -468,14 +415,14 @@ function startStepAnimation() {
   setStepActive(1);
   stepTimer = setInterval(() => {
     stepIndex++;
-    if (stepIndex > 5) stepIndex = 5;
+    if (stepIndex > 4) stepIndex = 4;
     setStepActive(stepIndex);
   }, 4000);
 }
 
 function stopStepAnimation() {
   clearInterval(stepTimer);
-  for (let n = 1; n <= 5; n++) {
+  for (let n = 1; n <= 4; n++) {
     const el = document.getElementById('step' + n);
     el.classList.remove('active');
     el.classList.add('done');
@@ -490,13 +437,6 @@ function showError(msg) {
 
 function hideError() {
   document.getElementById('error-box').style.display = 'none';
-}
-
-function formatMembers(n) {
-  if (!n) return '';
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M membros';
-  if (n >= 1000) return Math.round(n / 1000) + 'k membros';
-  return n + ' membros';
 }
 
 function renderResults(analysis) {
@@ -526,44 +466,37 @@ function renderResults(analysis) {
       </div>
     </div>
 
-    <div class="section-title">${subs.length} subreddits identificados — clique nas abas GEO / AEO / SEO para ver a estratégia</div>
+    <div class="section-title">${subs.length} subreddits identificados</div>
     <div class="grid">
   `;
 
-  subs.forEach((sub, i) => {
-    const members = formatMembers(sub.members);
+  subs.forEach((sub) => {
     const priorityClass = 'badge-priority-' + (sub.priority || 'baixa');
     const priorityLabel = (sub.priority || 'baixa').charAt(0).toUpperCase() + (sub.priority || 'baixa').slice(1);
 
     html += `
       <div class="sub-card">
         <div class="sub-header">
-          <div class="sub-name-block">
-            <div class="sub-name"><span class="sub-prefix">r/</span>${sub.name}</div>
-            <div class="sub-meta">
-              <span class="badge badge-lang">${sub.language}</span>
-              <span class="badge ${priorityClass}">${priorityLabel}</span>
-              ${members ? `<span class="sub-members">${members}</span>` : ''}
-            </div>
+          <div class="sub-name"><span class="sub-prefix">r/</span>${sub.name}</div>
+          <div class="sub-meta">
+            <span class="badge badge-lang">${sub.language}</span>
+            <span class="badge ${priorityClass}">${priorityLabel}</span>
           </div>
         </div>
         <div class="sub-rationale">${sub.rationale}</div>
-        <div class="strategy-tabs">
-          <button class="stab active-geo" onclick="switchTab(${i}, 'geo', this)">GEO</button>
-          <button class="stab" onclick="switchTab(${i}, 'aeo', this)">AEO</button>
-          <button class="stab" onclick="switchTab(${i}, 'seo', this)">SEO</button>
-        </div>
-        <div class="strategy-content">
-          <div class="strategy-panel active" id="panel-${i}-geo">
-            <div class="strategy-label label-geo">Generative Engine Optimization</div>
+        <div class="strategy-block">
+          <div class="strategy-item">
+            <span class="strategy-tag tag-geo">GEO</span>
             <div class="strategy-text">${sub.geo_strategy}</div>
           </div>
-          <div class="strategy-panel" id="panel-${i}-aeo">
-            <div class="strategy-label label-aeo">Answer Engine Optimization</div>
+          <div class="strategy-divider"></div>
+          <div class="strategy-item">
+            <span class="strategy-tag tag-aeo">AEO</span>
             <div class="strategy-text">${sub.aeo_strategy}</div>
           </div>
-          <div class="strategy-panel" id="panel-${i}-seo">
-            <div class="strategy-label label-seo">Search Engine Optimization</div>
+          <div class="strategy-divider"></div>
+          <div class="strategy-item">
+            <span class="strategy-tag tag-seo">SEO</span>
             <div class="strategy-text">${sub.seo_strategy}</div>
           </div>
         </div>
@@ -576,21 +509,13 @@ function renderResults(analysis) {
 
   html += `</div>
     <div class="result-footer">
-      <p><strong>Próximo passo:</strong> priorize os subreddits de alta relevância e defina um calendário de contribuição. A consistência ao longo de 60-90 dias é o que converte presença em citação algorítmica.</p>
+      <p><strong>Próximo passo:</strong> priorize os subreddits de alta relevância e defina um calendário de contribuição. A consistência ao longo de 60 a 90 dias é o que converte presença em citação algorítmica.</p>
       <button class="btn-new" onclick="resetTool()">Nova análise</button>
     </div>
   `;
 
   container.innerHTML = html;
   container.style.display = 'block';
-}
-
-function switchTab(index, type, btn) {
-  const card = btn.closest('.sub-card');
-  card.querySelectorAll('.stab').forEach(t => t.className = 'stab');
-  card.querySelectorAll('.strategy-panel').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active-' + type);
-  document.getElementById(`panel-${index}-${type}`).classList.add('active');
 }
 
 async function runAnalysis() {
