@@ -12,17 +12,13 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY não configurada' });
 
-  // 1. Fetch site content
-  let siteContent = '';
   let finalUrl = url.startsWith('http') ? url : 'https://' + url;
+  let siteContent = '';
 
   try {
     const siteRes = await fetch(finalUrl, {
-      signal: AbortSignal.timeout(8000),
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GEO-Research-Tool/1.0)',
-        'Accept': 'text/html'
-      }
+      signal: AbortSignal.timeout(6000),
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' }
     });
     const html = await siteRes.text();
     siteContent = html
@@ -31,51 +27,39 @@ module.exports = async function handler(req, res) {
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 2000);
+      .substring(0, 1500);
   } catch (e) {
-    siteContent = 'Conteúdo indisponível. Analise apenas pela URL: ' + finalUrl;
+    siteContent = 'Conteúdo indisponível. URL: ' + finalUrl;
   }
 
-  // 2. Claude API
-  const prompt = `Você é especialista em GEO (Generative Engine Optimization), AEO (Answer Engine Optimization) e SEO com foco em Reddit para citação por LLMs.
-
-Analise o site e identifique os melhores subreddits para a marca ser citada por IAs generativas (ChatGPT, Perplexity, Claude, Gemini).
+  const prompt = `Especialista em GEO, AEO e SEO. Analise o site e retorne os melhores subreddits para a marca ser citada por LLMs (ChatGPT, Perplexity, Claude, Gemini).
 
 URL: ${finalUrl}
 Conteúdo: ${siteContent}
 
-REGRAS:
-- Priorize subreddits em inglês (maior peso nos dados de treino das IAs)
-- Inclua 1 ou 2 subreddits em português quando relevante
-- Foco em CITAÇÃO ALGORÍTMICA, não tráfego humano
-- GEO: como criar conteúdo que LLMs vão citar como fonte
-- AEO: como responder perguntas para aparecer em Perplexity e SearchGPT
-- SEO: como gerar autoridade, backlinks e menções de marca via Reddit
-
-Retorne APENAS JSON válido, sem markdown:
+Retorne APENAS JSON válido, sem markdown, sem texto fora do JSON:
 {
   "brand": {
-    "name": "nome curto da marca",
-    "niche": "nicho em português (máx 6 palavras)",
-    "audience": "público-alvo (máx 8 palavras)",
-    "topics": ["tema1", "tema2", "tema3", "tema4"]
+    "name": "nome da marca",
+    "niche": "nicho em português",
+    "audience": "público-alvo",
+    "topics": ["tema1", "tema2", "tema3"]
   },
   "subreddits": [
     {
-      "name": "nome_exato_do_subreddit",
+      "name": "subreddit_name",
       "language": "EN",
       "priority": "alta",
-      "rationale": "Por que este subreddit é estratégico para esta marca. (1-2 frases)",
-      "geo_strategy": "Como criar conteúdo para ser citado por LLMs aqui. (2 frases)",
+      "rationale": "Por que é estratégico para esta marca. (1-2 frases)",
+      "geo_strategy": "Como criar conteúdo para ser citado por LLMs. (2 frases)",
       "aeo_strategy": "Como estruturar respostas para Perplexity e ChatGPT. (2 frases)",
-      "seo_strategy": "Como gerar autoridade e menções de marca aqui. (2 frases)"
+      "seo_strategy": "Como gerar autoridade e menções de marca. (2 frases)"
     }
   ]
 }
 
-Gere exatamente 5 subreddits. Ordene por prioridade decrescente.`;
+Gere 5 subreddits. Priorize inglês. Ordene por prioridade decrescente.`;
 
-  let analysis;
   try {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -86,43 +70,22 @@ Gere exatamente 5 subreddits. Ordene por prioridade decrescente.`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 1500,
+        max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }]
       }),
-      signal: AbortSignal.timeout(25000)
+      signal: AbortSignal.timeout(20000)
     });
 
     const claudeData = await claudeRes.json();
     if (!claudeData.content || !claudeData.content[0]) {
       throw new Error('Resposta inválida da API Claude: ' + JSON.stringify(claudeData));
     }
+
     const raw = claudeData.content[0].text.replace(/```json|```/g, '').trim();
-    analysis = JSON.parse(raw);
+    const analysis = JSON.parse(raw);
+
+    return res.status(200).json({ success: true, analysis });
   } catch (e) {
     return res.status(500).json({ error: 'Erro na análise: ' + e.message });
   }
-
-  // 3. Validar subreddits com Reddit API
-  const validated = await Promise.all(
-    (analysis.subreddits || []).map(async (sub) => {
-      try {
-        const r = await fetch(`https://www.reddit.com/r/${sub.name}/about.json`, {
-          headers: { 'User-Agent': 'GEO-Research-Tool/1.0' },
-          signal: AbortSignal.timeout(5000)
-        });
-        const rd = await r.json();
-        return {
-          ...sub,
-          members: rd?.data?.subscribers || null,
-          active: rd?.data?.accounts_active || null,
-          exists: !rd?.error
-        };
-      } catch {
-        return { ...sub, members: null, active: null, exists: true };
-      }
-    })
-  );
-
-  analysis.subreddits = validated;
-  return res.status(200).json({ success: true, analysis });
 };
