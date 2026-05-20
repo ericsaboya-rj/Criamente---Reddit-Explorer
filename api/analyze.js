@@ -53,7 +53,7 @@ Gere 5 subreddits. Priorize inglês. Ordene por prioridade decrescente.`;
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
+        max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       }),
       signal: AbortSignal.timeout(15000)
