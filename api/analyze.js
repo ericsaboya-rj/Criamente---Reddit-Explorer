@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
   let siteContent = '';
   try {
     const siteRes = await fetch(finalUrl, {
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(3000),
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' }
     });
     const html = await siteRes.text();
@@ -22,14 +22,13 @@ module.exports = async function handler(req, res) {
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 1000);
+      .substring(0, 800);
   } catch (e) {
     siteContent = '';
   }
-  const prompt = `Você é especialista em GEO, AEO e SEO com foco em Reddit para citação por LLMs.
-Analise este domínio e identifique os melhores subreddits para a marca ser citada por ChatGPT, Perplexity, Claude e Gemini.
+  const prompt = `Especialista em GEO, AEO e SEO. Identifique os melhores subreddits para a marca ser citada por LLMs.
 Domínio: ${finalUrl}
-${siteContent ? `Conteúdo do site: ${siteContent}` : ''}
+${siteContent ? `Conteúdo: ${siteContent}` : ''}
 Retorne APENAS JSON válido, sem markdown:
 {
   "brand": {
@@ -43,14 +42,14 @@ Retorne APENAS JSON válido, sem markdown:
       "name": "subreddit_name",
       "language": "EN",
       "priority": "alta",
-      "rationale": "Por que é estratégico para esta marca. (1-2 frases)",
-      "geo_strategy": "Como criar conteúdo para ser citado por LLMs. (2 frases)",
-      "aeo_strategy": "Como estruturar respostas para Perplexity e ChatGPT. (2 frases)",
-      "seo_strategy": "Como gerar autoridade e menções de marca. (2 frases)"
+      "rationale": "Por que é estratégico. (1 frase)",
+      "geo_strategy": "Como ser citado por LLMs aqui. (1 frase)",
+      "aeo_strategy": "Como estruturar respostas para Perplexity e ChatGPT. (1 frase)",
+      "seo_strategy": "Como gerar autoridade e menções de marca. (1 frase)"
     }
   ]
 }
-Gere exatamente 8 subreddits: no mínimo 6 em inglês e no máximo 2 em português. Os subreddits em inglês têm muito mais peso nos dados de treino das IAs e devem ser a prioridade absoluta. Ordene por prioridade decrescente.`;
+Gere 5 subreddits: 4 em inglês e 1 em português. Ordene por prioridade decrescente.`;
   try {
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -61,9 +60,10 @@ Gere exatamente 8 subreddits: no mínimo 6 em inglês e no máximo 2 em portugu�
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2000,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
-      })
+      }),
+      signal: AbortSignal.timeout(8000)
     });
     const claudeData = await claudeRes.json();
     if (!claudeData.content || !claudeData.content[0]) {
