@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reddit GEO Radar — Criamente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080808;
+  --surface: #111111;
+  --surface2: #181818;
+  --border: #1f1f1f;
+  --border2: #2a2a2a;
+  --text: #e8e8e8;
+  --text2: #888;
+  --text3: #555;
+  --blue: #125AF5;
+  --blue-dim: rgba(18,90,245,0.12);
+  --blue-glow: rgba(18,90,245,0.25);
+  --geo: #125AF5;
+  --geo-bg: rgba(18,90,245,0.1);
+  --aeo: #E8920A;
+  --aeo-bg: rgba(232,146,10,0.1);
+  --seo: #1AA860;
+  --seo-bg: rgba(26,168,96,0.1);
+  --high: #EF4444;
+  --med: #E8920A;
+  --low: #555;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+html { background: var(--bg); }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- HEADER ---- */
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { height: 22px; opacity: 0.9; }
+.logo-sep { width: 1px; height: 18px; background: var(--border2); }
+.logo-label { font-size: 12px; font-weight: 500; color: var(--text2); font-family: var(--mono); letter-spacing: 0.08em; }
+.header-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--blue);
+  border: 1px solid var(--blue-dim);
+  background: var(--blue-dim);
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+}
+
+/* ---- MAIN ---- */
+main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+
+/* ---- HERO ---- */
+.hero { margin-bottom: 40px; }
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--blue);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.hero p {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 540px;
+}
+
+/* ---- INPUT SECTION ---- */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 36px;
+}
+.input-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.input-row { display: flex; gap: 10px; }
+.url-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.url-input:focus { border-color: var(--blue); }
+.url-input::placeholder { color: var(--text3); }
+.btn-analyze {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 11px 22px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.btn-analyze:hover { opacity: 0.85; }
+.btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- LOADING ---- */
+#loading { display: none; margin-bottom: 32px; }
+.loading-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+}
+.loading-steps { display: flex; flex-direction: column; gap: 14px; }
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text3);
+  transition: color 0.3s;
+}
+.step.active { color: var(--text); }
+.step.done { color: var(--seo); }
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border2);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.step.active .step-dot { background: var(--blue); animation: pulse 1s infinite; }
+.step.done .step-dot { background: var(--seo); animation: none; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ---- ERROR ---- */
+#error-box {
+  display: none;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: 13px;
+  color: #FCA5A5;
+  margin-bottom: 24px;
+  font-family: var(--mono);
+}
+
+/* ---- RESULTS ---- */
+#results { display: none; }
+
+.brand-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.brand-field { flex: 1; min-width: 140px; }
+.brand-field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 5px;
+}
+.brand-field-value { font-size: 13px; color: var(--text); font-weight: 500; }
+.topic-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.topic-pill {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--blue);
+  background: var(--blue-dim);
+  border: 1px solid rgba(18,90,245,0.2);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+/* ---- SUBREDDIT CARD ---- */
+.sub-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.sub-card:hover { border-color: var(--border2); }
+
+.sub-header {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sub-name-block { flex: 1; min-width: 0; }
+.sub-name {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sub-prefix { color: var(--text3); font-weight: 400; }
+.sub-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.badge {
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+.badge-lang {
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+}
+.badge-priority-alta { color: var(--high); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+.badge-priority-media { color: var(--med); background: rgba(232,146,10,0.1); border: 1px solid rgba(232,146,10,0.2); }
+.badge-priority-baixa { color: var(--text3); background: var(--surface2); border: 1px solid var(--border2); }
+.sub-members {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.sub-rationale {
+  padding: 12px 18px;
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+}
+
+/* STRATEGY TABS */
+.strategy-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.stab {
+  flex: 1;
+  padding: 9px 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.stab:hover { color: var(--text2); }
+.stab.active-geo { color: var(--geo); border-bottom-color: var(--geo); }
+.stab.active-aeo { color: var(--aeo); border-bottom-color: var(--aeo); }
+.stab.active-seo { color: var(--seo); border-bottom-color: var(--seo); }
+
+.strategy-content { padding: 14px 18px 16px; }
+.strategy-panel { display: none; }
+.strategy-panel.active { display: block; }
+
+.strategy-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.label-geo { color: var(--geo); }
+.label-aeo { color: var(--aeo); }
+.label-seo { color: var(--seo); }
+
+.strategy-text {
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.65;
+}
+
+.sub-footer {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+.sub-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.sub-link:hover { color: var(--blue); }
+
+/* ---- CTA FOOTER ---- */
+.result-footer {
+  margin-top: 36px;
+  padding: 20px 24px;
+  background: var(--blue-dim);
+  border: 1px solid rgba(18,90,245,0.15);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.result-footer p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.result-footer strong { color: var(--text); }
+.btn-new {
+  background: transparent;
+  color: var(--blue);
+  border: 1px solid rgba(18,90,245,0.4);
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-size: 12px;
+  font-family: var(--sans);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.btn-new:hover { background: var(--blue-dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="https://criamente.com" target="_blank">
+    <img src="https://criamente.com/wp-content/uploads/2025/11/logo-criamente.webp" alt="Criamente">
+    <div class="logo-sep"></div>
+    <span class="logo-label">GEO Tools</span>
+  </a>
+  <span class="header-badge">REDDIT GEO RADAR</span>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-eyebrow">Estratégia de Presença em IA</div>
+    <h1>Quais subreddits geram citação por LLMs para a sua marca?</h1>
+    <p>Identifique os subreddits mais estratégicos para construir autoridade que seja lida e citada por ChatGPT, Perplexity, Claude e Gemini.</p>
+  </div>
+
+  <div class="input-card">
+    <div class="input-label">Domínio do cliente</div>
+    <div class="input-row">
+      <input
+        type="text"
+        class="url-input"
+        id="urlInput"
+        placeholder="ex: dommus.com.br"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="btn-analyze" id="btnAnalyze" onclick="runAnalysis()">Analisar</button>
+    </div>
+  </div>
+
+  <div id="error-box"></div>
+
+  <div id="loading">
+    <div class="loading-card">
+      <div class="loading-steps">
+        <div class="step" id="step1"><div class="step-dot"></div> Lendo o site do cliente</div>
+        <div class="step" id="step2"><div class="step-dot"></div> Identificando nicho, público e temas-chave</div>
+        <div class="step" id="step3"><div class="step-dot"></div> Mapeando subreddits com potencial GEO/AEO/SEO</div>
+        <div class="step" id="step4"><div class="step-dot"></div> Validando atividade e membros no Reddit</div>
+        <div class="step" id="step5"><div class="step-dot"></div> Gerando estratégias por canal</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<script>
+let stepIndex = 0;
+let stepTimer = null;
+
+function setStepActive(i) {
+  for (let n = 1; n <= 5; n++) {
+    const el = document.getElementById('step' + n);
+    el.classList.remove('active', 'done');
+    if (n < i) el.classList.add('done');
+    if (n === i) el.classList.add('active');
+  }
+}
+
+function startStepAnimation() {
+  stepIndex = 1;
+  setStepActive(1);
+  stepTimer = setInterval(() => {
+    stepIndex++;
+    if (stepIndex > 5) stepIndex = 5;
+    setStepActive(stepIndex);
+  }, 4000);
+}
+
+function stopStepAnimation() {
+  clearInterval(stepTimer);
+  for (let n = 1; n <= 5; n++) {
+    const el = document.getElementById('step' + n);
+    el.classList.remove('active');
+    el.classList.add('done');
+  }
+}
+
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = msg;
+  box.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('error-box').style.display = 'none';
+}
+
+function formatMembers(n) {
+  if (!n) return '';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M membros';
+  if (n >= 1000) return Math.round(n / 1000) + 'k membros';
+  return n + ' membros';
+}
+
+function renderResults(analysis) {
+  const brand = analysis.brand;
+  const subs = analysis.subreddits || [];
+  const container = document.getElementById('results');
+
+  let html = `
+    <div class="brand-card">
+      <div class="brand-field">
+        <div class="brand-field-label">Marca</div>
+        <div class="brand-field-value">${brand.name}</div>
+      </div>
+      <div class="brand-field">
+        <div class="brand-field-label">Nicho</div>
+        <div class="brand-field-value">${brand.niche}</div>
+      </div>
+      <div class="brand-field">
+        <div class="brand-field-label">Público-alvo</div>
+        <div class="brand-field-value">${brand.audience}</div>
+      </div>
+      <div class="brand-field">
+        <div class="brand-field-label">Temas-chave</div>
+        <div class="topic-pills">
+          ${(brand.topics || []).map(t => `<span class="topic-pill">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">${subs.length} subreddits identificados — clique nas abas GEO / AEO / SEO para ver a estratégia</div>
+    <div class="grid">
+  `;
+
+  subs.forEach((sub, i) => {
+    const members = formatMembers(sub.members);
+    const priorityClass = 'badge-priority-' + (sub.priority || 'baixa');
+    const priorityLabel = (sub.priority || 'baixa').charAt(0).toUpperCase() + (sub.priority || 'baixa').slice(1);
+
+    html += `
+      <div class="sub-card">
+        <div class="sub-header">
+          <div class="sub-name-block">
+            <div class="sub-name"><span class="sub-prefix">r/</span>${sub.name}</div>
+            <div class="sub-meta">
+              <span class="badge badge-lang">${sub.language}</span>
+              <span class="badge ${priorityClass}">${priorityLabel}</span>
+              ${members ? `<span class="sub-members">${members}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="sub-rationale">${sub.rationale}</div>
+        <div class="strategy-tabs">
+          <button class="stab active-geo" onclick="switchTab(${i}, 'geo', this)">GEO</button>
+          <button class="stab" onclick="switchTab(${i}, 'aeo', this)">AEO</button>
+          <button class="stab" onclick="switchTab(${i}, 'seo', this)">SEO</button>
+        </div>
+        <div class="strategy-content">
+          <div class="strategy-panel active" id="panel-${i}-geo">
+            <div class="strategy-label label-geo">Generative Engine Optimization</div>
+            <div class="strategy-text">${sub.geo_strategy}</div>
+          </div>
+          <div class="strategy-panel" id="panel-${i}-aeo">
+            <div class="strategy-label label-aeo">Answer Engine Optimization</div>
+            <div class="strategy-text">${sub.aeo_strategy}</div>
+          </div>
+          <div class="strategy-panel" id="panel-${i}-seo">
+            <div class="strategy-label label-seo">Search Engine Optimization</div>
+            <div class="strategy-text">${sub.seo_strategy}</div>
+          </div>
+        </div>
+        <div class="sub-footer">
+          <a class="sub-link" href="https://reddit.com/r/${sub.name}" target="_blank">↗ abrir r/${sub.name}</a>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>
+    <div class="result-footer">
+      <p><strong>Próximo passo:</strong> priorize os subreddits de alta relevância e defina um calendário de contribuição. A consistência ao longo de 60-90 dias é o que converte presença em citação algorítmica.</p>
+      <button class="btn-new" onclick="resetTool()">Nova análise</button>
+    </div>
+  `;
+
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+function switchTab(index, type, btn) {
+  const card = btn.closest('.sub-card');
+  card.querySelectorAll('.stab').forEach(t => t.className = 'stab');
+  card.querySelectorAll('.strategy-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active-' + type);
+  document.getElementById(`panel-${index}-${type}`).classList.add('active');
+}
+
+async function runAnalysis() {
+  const urlInput = document.getElementById('urlInput');
+  const btn = document.getElementById('btnAnalyze');
+  let url = urlInput.value.trim();
+
+  if (!url) { showError('Informe uma URL para continuar.'); return; }
+  if (!url.startsWith('http')) url = 'https://' + url;
+
+  hideError();
+  btn.disabled = true;
+  btn.textContent = 'Analisando...';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+  startStepAnimation();
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+
+    stopStepAnimation();
+    document.getElementById('loading').style.display = 'none';
+
+    if (!data.success || !data.analysis) {
+      showError('Erro: ' + (data.error || 'Resposta inválida da API.'));
+    } else {
+      renderResults(data.analysis);
+    }
+  } catch (e) {
+    stopStepAnimation();
+    document.getElementById('loading').style.display = 'none';
+    showError('Erro de conexão: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analisar';
+  }
+}
+
+function resetTool() {
+  document.getElementById('urlInput').value = '';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+  hideError();
+  document.getElementById('urlInput').focus();
+}
+
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runAnalysis();
+});
+</script>
+</body>
+</html>
