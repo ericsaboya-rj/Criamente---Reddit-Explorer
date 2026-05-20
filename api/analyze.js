@@ -60,7 +60,7 @@ Gere 5 subreddits: 4 em inglês e 1 em português. Ordene por prioridade decresc
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
+        max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }]
       }),
       signal: AbortSignal.timeout(8000)
