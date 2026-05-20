@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const siteRes = await fetch(finalUrl, {
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(8000),
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; GEO-Research-Tool/1.0)',
         'Accept': 'text/html'
@@ -31,34 +31,33 @@ module.exports = async function handler(req, res) {
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 4000);
+      .substring(0, 2000);
   } catch (e) {
     siteContent = 'Conteúdo indisponível. Analise apenas pela URL: ' + finalUrl;
   }
 
-  // 2. Claude API — foco em GEO, AEO, SEO
-  const prompt = `Você é um especialista sênior em GEO (Generative Engine Optimization), AEO (Answer Engine Optimization) e SEO com foco em estratégias de presença no Reddit para citação por LLMs.
+  // 2. Claude API
+  const prompt = `Você é especialista em GEO (Generative Engine Optimization), AEO (Answer Engine Optimization) e SEO com foco em Reddit para citação por LLMs.
 
-Analise o site abaixo e identifique os melhores subreddits para que a marca construa autoridade e seja citada por IAs generativas (ChatGPT, Perplexity, Claude, Gemini).
+Analise o site e identifique os melhores subreddits para a marca ser citada por IAs generativas (ChatGPT, Perplexity, Claude, Gemini).
 
 URL: ${finalUrl}
-Conteúdo extraído: ${siteContent}
+Conteúdo: ${siteContent}
 
 REGRAS:
 - Priorize subreddits em inglês (maior peso nos dados de treino das IAs)
-- Inclua 2 subreddits em português quando o mercado local for estratégico
-- O objetivo central é CITAÇÃO ALGORÍTMICA, não tráfego humano
-- Cada estratégia deve ser específica, acionável, com foco em GEO/AEO/SEO
-- GEO: como criar conteúdo que LLMs vão citar como fonte confiável
-- AEO: como responder perguntas para aparecer em motores de resposta (Perplexity, SearchGPT)
-- SEO: como gerar autoridade de domínio, backlinks e menções de marca via Reddit
+- Inclua 1 ou 2 subreddits em português quando relevante
+- Foco em CITAÇÃO ALGORÍTMICA, não tráfego humano
+- GEO: como criar conteúdo que LLMs vão citar como fonte
+- AEO: como responder perguntas para aparecer em Perplexity e SearchGPT
+- SEO: como gerar autoridade, backlinks e menções de marca via Reddit
 
-Retorne APENAS JSON válido, sem markdown, sem texto fora do JSON:
+Retorne APENAS JSON válido, sem markdown:
 {
   "brand": {
     "name": "nome curto da marca",
     "niche": "nicho em português (máx 6 palavras)",
-    "audience": "público-alvo principal (máx 8 palavras)",
+    "audience": "público-alvo (máx 8 palavras)",
     "topics": ["tema1", "tema2", "tema3", "tema4"]
   },
   "subreddits": [
@@ -66,15 +65,15 @@ Retorne APENAS JSON válido, sem markdown, sem texto fora do JSON:
       "name": "nome_exato_do_subreddit",
       "language": "EN",
       "priority": "alta",
-      "rationale": "Por que este subreddit é estratégico para esta marca específica. (1-2 frases diretas)",
-      "geo_strategy": "Tipo de post, formato e frequência que maximiza citação por LLMs neste subreddit. Exemplo concreto de abordagem. (2-3 frases)",
-      "aeo_strategy": "Como estruturar respostas neste subreddit para ser extraído por Perplexity, ChatGPT e Google AIO. Formato ideal de resposta. (2-3 frases)",
-      "seo_strategy": "Como aproveitar este subreddit para gerar autoridade de domínio, menções de marca e tráfego referencial qualificado. (2-3 frases)"
+      "rationale": "Por que este subreddit é estratégico para esta marca. (1-2 frases)",
+      "geo_strategy": "Como criar conteúdo para ser citado por LLMs aqui. (2 frases)",
+      "aeo_strategy": "Como estruturar respostas para Perplexity e ChatGPT. (2 frases)",
+      "seo_strategy": "Como gerar autoridade e menções de marca aqui. (2 frases)"
     }
   ]
 }
 
-Gere exatamente 7 subreddits. Ordene por prioridade decrescente (alta → media → baixa).`;
+Gere exatamente 5 subreddits. Ordene por prioridade decrescente.`;
 
   let analysis;
   try {
@@ -87,10 +86,10 @@ Gere exatamente 7 subreddits. Ordene por prioridade decrescente (alta → media 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 2500,
+        max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }]
       }),
-      signal: AbortSignal.timeout(40000)
+      signal: AbortSignal.timeout(25000)
     });
 
     const claudeData = await claudeRes.json();
@@ -103,20 +102,19 @@ Gere exatamente 7 subreddits. Ordene por prioridade decrescente (alta → media 
     return res.status(500).json({ error: 'Erro na análise: ' + e.message });
   }
 
-  // 3. Validar subreddits com Reddit public API
+  // 3. Validar subreddits com Reddit API
   const validated = await Promise.all(
     (analysis.subreddits || []).map(async (sub) => {
       try {
         const r = await fetch(`https://www.reddit.com/r/${sub.name}/about.json`, {
           headers: { 'User-Agent': 'GEO-Research-Tool/1.0' },
-          signal: AbortSignal.timeout(6000)
+          signal: AbortSignal.timeout(5000)
         });
         const rd = await r.json();
         return {
           ...sub,
           members: rd?.data?.subscribers || null,
           active: rd?.data?.accounts_active || null,
-          title: rd?.data?.title || null,
           exists: !rd?.error
         };
       } catch {
