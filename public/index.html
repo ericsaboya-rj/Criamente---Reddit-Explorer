@@ -276,7 +276,6 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
   border-bottom: 1px solid var(--border);
 }
 
-/* CONSOLIDATED STRATEGY */
 .strategy-block { padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
 .strategy-item { display: flex; flex-direction: column; gap: 5px; }
 .strategy-tag {
@@ -471,13 +470,14 @@ function renderResults(analysis) {
   `;
 
   subs.forEach((sub) => {
+    const name = sub.name.replace(/^r\//, '');
     const priorityClass = 'badge-priority-' + (sub.priority || 'baixa');
     const priorityLabel = (sub.priority || 'baixa').charAt(0).toUpperCase() + (sub.priority || 'baixa').slice(1);
 
     html += `
       <div class="sub-card">
         <div class="sub-header">
-          <div class="sub-name"><span class="sub-prefix">r/</span>${sub.name}</div>
+          <div class="sub-name"><span class="sub-prefix">r/</span>${name}</div>
           <div class="sub-meta">
             <span class="badge badge-lang">${sub.language}</span>
             <span class="badge ${priorityClass}">${priorityLabel}</span>
@@ -501,7 +501,7 @@ function renderResults(analysis) {
           </div>
         </div>
         <div class="sub-footer">
-          <a class="sub-link" href="https://reddit.com/r/${sub.name}" target="_blank">↗ abrir r/${sub.name}</a>
+          <a class="sub-link" href="https://www.reddit.com/r/${name}" target="_blank">↗ abrir r/${name}</a>
         </div>
       </div>
     `;
