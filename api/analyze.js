@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
   let siteContent = '';
   try {
     const siteRes = await fetch(finalUrl, {
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(25000),
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' }
     });
     const html = await siteRes.text();
